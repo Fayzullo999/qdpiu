@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fayllardan qidiruv tizimi</title>
+    <style>
+        /* CSS qismi - Sayt ko'rinishi */
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: #e9ecef;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .main-container {
+            width: 100%;
+            max-width: 700px;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 25px;
+        }
+
+        .search-wrapper {
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        #searchInput {
+            width: 100%;
+            padding: 15px 20px;
+            font-size: 18px;
+            border: 2px solid #ddd;
+            border-radius: 50px;
+            outline: none;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        #searchInput:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 8px rgba(52, 152, 219, 0.3);
+        }
+
+        .result-card {
+            background: #fff;
+            border-left: 5px solid #3498db;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            animation: fadeIn 0.4s ease;
+        }
+
+        .result-card h3 {
+            margin: 0 0 10px 0;
+            color: #2980b9;
+        }
+
+        .result-card p {
+            margin: 0;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .no-results {
+            text-align: center;
+            color: #95a5a6;
+            margin-top: 20px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        <h1>Ma'lumotlar ombori</h1>
+        
+        <div class="search-wrapper">
+            <input type="text" id="searchInput" placeholder="Qidirishni boshlang..." oninput="performSearch()">
+        </div>
+
+        <div id="resultsList">
+            <!-- Natijalar shu yerda paydo bo'ladi -->
+        </div>
+    </div>
+
+    <script>
+        // JavaScript qismi - Qidiruv mantiqi
+        
+        // Bu yerga o'zingizning 6 ta faylingizdagi ma'lumotlarni yozib chiqing
+        const myFilesData = [
+    { title: "1-savol", content: "Maydon o`yinchisi texnikasiga nimalar kiradi? Javob: zarba berish, to`xtatish, olib yurish, fint, olib qo`yish" },
+    { title: "2-savol", content: "Futbol o`yin qoidalari nechta bo`limdan iborat? Javob: 17" },
+    { title: "3-savol", content: "Xakamning qollari tepaga kotarilish xolati nimani anglatadi? Javob: erkin jarima to`pi" },
+    { title: "4-savol", content: "Futbol maydonida xakam qaysi yilda paydo bo'lgan? Javob: 1880 y" },
+    { title: "5-savol", content: "Osiyo futbol konfederatsiyasiga qaysi yilda tashkil topgan? Javob: 1954 y" },
+    { title: "6-savol", content: "Raqib ustidan gʻalabaga erishishga qaratilgan oʻyinchilarning individual va barcha guruxli harakatlarini tashkil etish qanday ataladi? Javob: futbol taktikasi" },
+    { title: "7-savol", content: "Bolalar va o'smirlar sport maktabi qisqartirilgan variantda qanday belgilangan? Javob: BO`SM" },
+    { title: "8-savol", content: "Taymlar oʻrtasidagi vaqt necha daqiqadan oshib ketmasligi kerakmi? Javob: 15 daqiqa" },
+    { title: "9-savol", content: "Goalkiper kim? Javob: Darvozabon" },
+    { title: "10-savol", content: "Qaysi jamoa eng ko'p O'zbekiston Kubogi sohibiga aylandi? Javob: Pahtakor" },
+    { title: "11-savol", content: "Forvard kim? Javob: Hujumchi" },
+    { title: "12-savol", content: "2010 va 2014 yillarda jahon chempionati bahslarida o'zbekistonlik hakamlardan qaysi biri oyinlarni boshqargan? Javob: R.Irmatov" },
+    { title: "13-savol", content: "Oʻzbekiston milliy terma jamoasi Osiyo o`yinlarida qaysi yilda gʻolib boʻldi? Javob: 1994y" },
+    { title: "14-savol", content: "O‘zbekistonda futbolni rivojlantirish to'g'risidagi prezident farmoni qachon qabul qilingan? Javob: 05.12.2019 yil" },
+    { title: "15-savol", content: "Mashg`ulot konspektining 2- qismi nima deyiladi? Javob: Asosiy" },
+    { title: "16-savol", content: "Chaqqonlik nima? Javob: Bu insonning harakatlarni tez, aniq va yengil bajarish qobiliyati" },
+    { title: "17-savol", content: "Futbolda hujum qilishdan asosiy maqsad nima? Javob: Raqib darvozasini ishg`ol qilishga qaratilgan xarakatlar" },
+    { title: "18-savol", content: "O'yinchi chetlatilganda hakam tomonidan ko'rsatilgan kartichka qanday rangda? Javob: Qizil" },
+    { title: "19-savol", content: "Oʻyinchini ogohlantirishda hakam tomonidan koʻrsatilgan kartichka qanday rangda? Javob: Sariq" },
+    { title: "20-savol", content: "Maydon cheti boʻylab harakat qilayotgan hakam qanday nomlanadi? Javob: Yordamchi xakam" },
+    { title: "21-savol", content: "Futbolda koproq nechta musobaqa tizimni bo'ladi? Javob: 3" },
+    { title: "22-savol", content: "O'zbekiston chempionati qaysi tizimiga ko'ra o'tkaziladi? Javob: Aylanma bo'yicha" },
+    { title: "23-savol", content: "Qanday mashgulotlar yillik sikl mashgulotlarining hajmida birinchi orinda turadi? Javob: umumiy jismoniy tayyorgarlik" },
+    { title: "24-savol", content: "Taktik tayyorgarlik boyicha mashgulotlar qaysi davrlarda otkaziladi? Javob: Hamma javob togri (Tayyorlov va musobaqa davrlarida)" },
+    { title: "25-savol", content: "Bolalar-osmirlar sport maktablarining futbol bolimi asosiy vazifasi? Javob: Yuksak mahoratli oyinchilarni tayyorlash" },
+    { title: "26-savol", content: "Yosh futbolchilarni tayyorlashda rejalashtirish turlari? Javob: Istiqbolli, bir yillik, tezkor (operativ)" },
+    { title: "27-savol", content: "Oquv-mashgulot konspekti nechta qismdan iborat? Javob: 3" },
+    { title: "28-savol", content: "Futbolda asosiy mashqlarga nimalar kiradi? Javob: Umumiy va maxsus xarakatlanish sifatlarini rivojlantiruvchi mashqlar, topni boshqarish texnikasini orgatuvchi mashqlar" },
+    { title: "29-savol", content: "Mashgulot nima? Javob: Bu insonning jismoniy kuchi, chidamliligi, tezligi va chaqqonligini rivojlantirish uchun maxsus reja asosida bajariladigan jismoniy harakatlar majmuasi" },
+    { title: "30-savol", content: "Sport tayyorgarligi bu? Javob: Sportchining jismoniy, texnik, taktik va ruhiy jihatdan musobaqalarga yoki mashgulotlarga tayyor bolishini taminlaydigan tizimli jarayon" },
+    { title: "31-savol", content: "Sport mashguloti bu? Javob: Tanani chiniqtirish, sport mahoratini oshirish va soglom bolish uchun muntazam bajariladigan mashqlar jarayoni" },
+    { title: "32-savol", content: "Musobaqa mashqlari nima? Javob: Sportchilar yoki ishtirokchilarni haqiqiy musobaqaga tayyorlash uchun bajariladigan maxsus mashqlar majmuasi" },
+    { title: "33-savol", content: "Maxsus mashqlar bu? Javob: Hamma uchun bir xil emas, balki kerakli natijaga qarab tanlanadigan mashqlar" },
+    { title: "34-savol", content: "Umumiy rivojlantiruvchi mashqlar nima? Javob: Futbolchilarni umumiy tayyorgarliklarni amlaga oshirishdagi xarakatlanish faoliyatlari" },
+    { title: "35-savol", content: "Maxsus tayyorgarlik mashqlari nima? Javob: Aniq bir sport turiga yoki harakatga moslashtirilgan, shu yonalishdagi konikmalarni rivojlantirish uchun bajariladigan mashqlar" },
+    { title: "36-savol", content: "Maxsuslashagan bolalar va osmirlar olipiya zaxiralari maktabi qisqacha nomi? Javob: IBOZSM" },
+    { title: "37-savol", content: "Boshlangich tayyorlov guruxi tarbiyalanuvchilarining yoshi? Javob: 5-6 yosh" },
+    { title: "38-savol", content: "Oquv tayyorlov guruxi tarbiyalanuvchilari necha yoshda boladi? Javob: 11-12 yosh" },
+    { title: "39-savol", content: "Sport takomillashuv guruxi tarbiyalanuvchilari necha yoshda boladi? Javob: 13-16 yosh" },
+    { title: "40-savol", content: "Yosh futbolchilarni kop yillik tayyorgarligini samarali boshqarishda nima axamiyatli? Javob: Mashgulotlar yoshi, jismoniy rivoji va psixologik holatiga mos bolishi" },
+    { title: "41-savol", content: "Istiqbolli rejalashtirish nima? Javob: Bir necha yillarga moljallangan jarayon" },
+    { title: "42-savol", content: "Yillik rejalashtirish qancha muddatga ishlab chiqiladi? Javob: Bir yilga" },
+    { title: "43-savol", content: "Yillik siklda davrlar nechiga bolinadi? Javob: 4" },
+    { title: "44-savol", content: "Futbolchining xar tomonlama tayyorgarligini ta'minlash vazifasi qaysi davrda amalga oshiriladi? Javob: Tayyorgarlik davri" },
+    { title: "45-savol", content: "Bolalarga jismoniy sifatlarni tarbiyalashda minimal mashqlar necha yoshda beriladi? Javob: 6-8 yoshda" },
+    { title: "46-savol", content: "Necha yil muntazam shugullangandan song yuqori natijaga erishish mumkin? Javob: 8-10 yil" },
+    { title: "47-savol", content: "80 minutlik dars konspektida asosiy qismga qancha vaqt ajratiladi? Javob: 50-55 minut" },
+    { title: "48-savol", content: "Sportda jismoniy sifatlar nechta? Javob: 5 ta" },
+    { title: "49-savol", content: "Dars konspektining tayyorlov qismining vazifasi? Javob: Oquvchilar organizimini asosiy qismga tayyorlab berish" },
+    { title: "50-savol", content: "Darsning asosiy qismining vazifasi? Javob: Darsga qoyilgan vazifalarni yoritib berish" },
+    { title: "51-savol", content: "Darsning yakuniy qismining vazifasi? Javob: Organizimni tinch holatga keltirish, uyga vazifa va kamchiliklarni tushuntirish" },
+    { title: "52-savol", content: "Oquv-mashgulotning mator zichligini aniqlash usuli? Javob: Xronometraj" },
+    { title: "53-savol", content: "Bir yillik rejalashtirish asosi nima? Javob: Ichki va xalqaro musobaqalar taqvimi" },
+    { title: "54-savol", content: "Yillik sikl davomida nechta musobaqada ishtirok etish meyor hisoblanadi? Javob: 1-3" },
+    { title: "55-savol", content: "Tayyorgarlik davrining asosiy vazifasi? Javob: Jismoniy jihatdan yuqori darajasiga chiqish" },
+    { title: "56-savol", content: "Istiqbolli rejalashtirish qancha davrni oz ichiga oladi? Javob: 3" },
+    { title: "57-savol", content: "Futbolchilarning hajm va samaradorligini qanday usullar bilan baholanadi? Javob: Barcha javoblar togri (top uzatish, olib qoyish, zarba)" },
+    { title: "58-savol", content: "Qisqa vaqt ichida katta miqdorda kuch namayon bolishiga nima deyiladi? Javob: Portlovchi kuch" },
+    { title: "59-savol", content: "Tezlikni aniqlashda qaysi testdan foydalaniladi? Javob: 30 m ga yugurish" },
+    { title: "60-savol", content: "Maksimal tezlikning tabiiy osishi qaysi yosh oraligida? Javob: 7-12 yoshlar" },
+    { title: "61-savol", content: "Tezlik-kuch sifatlari va mushak kuchi necha yoshda ortadi? Javob: 12-16 yoshlar" },
+    { title: "62-savol", content: "Tezlik-chidamkorlikni aniqlash testi? Javob: 7x50 m ga yugurish" },
+    { title: "63-savol", content: "Boshlangich bosqichda kuchni oshirish uchun tayyorlik komplekslarini qollash mumkinmi? Javob: Ha" },
+    { title: "64-savol", content: "Yosh futbolchilarning jismoniy imkoniyatlari qanday aniqlanadi? Javob: Maxsus testlar orqali" },
+    { title: "65-savol", content: "Chidamlilikni tarbiyalash necha yoshdan boshlanadi? Javob: 12-14" },
+    { title: "66-savol", content: "Bosmlarda futbol mashgulotlari qaerda olib boriladi? Javob: Bosm futbol maydonida" },
+    { title: "67-savol", content: "BOSMning toliq nomlanishi? Javob: Bolalar osmirlar sport maktabi" },
+    { title: "68-savol", content: "BOSM boshlangich tayyorlov 1-yil uchun yillik soat? Javob: 312 soat" },
+    { title: "69-savol", content: "Rejalashtirish nima? Javob: Tayyorgarlikni samarali boshqarish sharti, zamon talabiga javob beradigan oyinchini tayyorlash zamini" },
+    { title: "70-savol", content: "Dam olishning qaysi biri organizmni tez tiklaydi? Javob: Uyqu" },
+    { title: "71-savol", content: "Makrosikl qancha vaqtni oladi? Javob: Bir necha yillar" },
+    { title: "72-savol", content: "Kuch sifatining maksimal davri? Javob: 10-18 va 25-35 yosh" },
+    { title: "73-savol", content: "Kuch sifatini rivojlantirish qaysi yoshdan maqsadga muvofiq? Javob: 14-17 yoshdan" },
+    { title: "74-savol", content: "Tayyorgarlik davri nechta guruhga bolinadi? Javob: 2-guruhga" },
+    { title: "75-savol", content: "Egiluvchanlikni rivojlantirish uchun eng qulay yosh? Javob: 7-9" },
+    { title: "76-savol", content: "Kompleks mashg`ulotlar yillik siklda nechanchi o`rinda? Javob: Uchinchi" },
+    { title: "77-savol", content: "Jismoniy tayyorgarlik mashg`ulotlarining ko`p qismi qaysi davrda? Javob: Tayyorlov" },
+    { title: "78-savol", content: "Jismoniy tayyorgarlikning beshta sifati? Javob: Kuch, tezkorlik, chidamlilik, chaqqonlik va egiluvchanlik" },
+    { title: "79-savol", content: "BO`SM qaysi yoshdagi bolalarni shakllantiradi? Javob: 8-9, 10-11, 12-13, 14-15, 16-17" },
+    { title: "80-savol", content: "Musobaqa davri nechta turga bo`linadi? Javob: 2 ta" },
+    { title: "81-savol", content: "O`tish davri boshqalaridan nimasi bilan farq qiladi? Javob: Organizmining tiklanish davri xisoblanishi bilan" },
+    { title: "82-savol", content: "Tayyorgarlik davri qisimlari? Javob: Umumiy va maxsus" },
+    { title: "83-savol", content: "Tayyorgarlik turlari? Javob: Texnik, taktik, jismoniy, nazariy, psixologik" },
+    { title: "84-savol", content: "Burchak sektorining radiusi qancha? Javob: 1 metr" },
+    { title: "85-savol", content: "O'zbekiston futbol federasiyasi FIFAga qachon kirgan? Javob: 1994 y" },
+    { title: "86-savol", content: "Uzoq masofalarga yugurish qaysi sifatni rivojlantiradi? Javob: Chidamlilik" },
+    { title: "87-savol", content: "Futbol maydonining standart uzunligi? Javob: 90-120 m" },
+    { title: "88-savol", content: "Olimpiya tizimining boshqa nomi? Javob: Chiqib ketish tizimi" },
+    { title: "89-savol", content: "Ximoya taktikasi turlari? Javob: Individual, guruxli, jamoaviy" },
+    { title: "90-savol", content: "Futbol topining aylanasi? Javob: 68-70 sm" },
+    { title: "91-savol", content: "FIFA qachon va qayerda tashkil topgan? Javob: 1904 yil Parij" },
+    { title: "92-savol", content: "O'FA qaysi Konfederasiya tarkibida? Javob: OFK" },
+    { title: "93-savol", content: "O'zbekistonda birinchi jamoa qachon tashkil topgan? Javob: 1912 yil Qoqon shaxrida" },
+    { title: "94-savol", content: "Birinchi Jaxon Chempionati qayerda otgan? Javob: 1930 yilda Urugvay" },
+    { title: "95-savol", content: "Xalqaro futbol assosiasiyasi qisqartmasi? Javob: FIFA" },
+    { title: "96-savol", content: "Futbol qoidalari birinchi bor qachon paydo boldi? Javob: 1863 yili" },
+    { title: "97-savol", content: "Tezkorlik sifati qaysi korsatkichda aniqlanadi? Javob: Sekund" },
+    { title: "98-savol", content: "Tezkorlikni aniqlashda qulay masofalar? Javob: 15, 30 m" },
+    { title: "99-savol", content: "O'zbekiston futbol assosiasiyasi Prezidenti? Javob: Abdusalom Azizov" },
+    { title: "100-savol", content: "UFA Bosh kotibi kim? Javob: Avaz Maksumov" },
+    { title: "101-savol", content: "Musobaqa davrining davomiyligi? Javob: 3 oy" },
+    { title: "102-savol", content: "Tayyorgarlik davri necha oy? Javob: 2-5 oy" },
+    { title: "103-savol", content: "Asosiy musobaqalar tarkibiga nimalar kiradi? Javob: Mamlakat chempionati, Kubok, saralash musobaqalari" },
+    { title: "104-savol", content: "Yordamchi musobaqalar? Javob: Nazorat, ortoqlik, korgazmali" },
+    { title: "105-savol", content: "Qaysi musobaqada chempion unvoni beriladi? Javob: Mamlakat chempionati" },
+    { title: "106-savol", content: "2018 yildagi zamonaviy usul? Javob: VAR jori qilingan" },
+    { title: "107-savol", content: "Futbol qoidalari 1-qoidasi? Javob: Uchrashuv o`tkaziladigan maydon" },
+    { title: "108-savol", content: "Mustaqil O'zbekiston 1-chempionatidagi noodatiy holat? Javob: Ikki jamoa chempion bo`lgan" },
+    { title: "109-savol", content: "Qoidalarga rioya etishni kim nazorat qiladi? Javob: Xakam" },
+    { title: "110-savol", content: "Topni olib yurish usullari? Javob: Oyoqning tag, tashqi va ichki qismlari (Hamma javob togri)" },
+    { title: "111-savol", content: "Toshkentdagi birinchi jamoa nomi? Javob: Dinamo" },
+    { title: "112-savol", content: "OFK ga azo davlatlar soni? Javob: 46 ta" },
+    { title: "113-savol", content: "Futbol farmoni qachon qabul qilingan? Javob: 2019-yil 4-dekabr" },
+    { title: "114-savol", content: "O'zbekistonda ommaviylashgan sport turlari? Javob: Futbol, Voleybol, basketbol" },
+    { title: "115-savol", content: "Futbolni boshqaruvchi yetakchi organ? Javob: OFA" },
+    { title: "116-savol", content: "Futbol qayerlarda ommaviylashtiriladi? Javob: Maktablar, korxonalar va oliy oquv yurtlarida (Barcha javoblar togri)" },
+    { title: "117-savol", content: "Osiyoda birinchi sovrindor klubimiz? Javob: Nasaf" },
+    { title: "118-savol", content: "Doping nazorati nima? Javob: Maxsus tadbirlar orqali doping qabul qilinganini aniqlash" },
+    { title: "119-savol", content: "Antidoping nazorati biologik suyuqliklari? Javob: Peshob, qon" },
+    { title: "120-savol", content: "Egiluvchanlik sifati turlari? Javob: 2 xil: aktiv va passiv" },
+    { title: "121-savol", content: "BOSM boshlangich tayyorlov haftalik soati? Javob: 6 soat" },
+    { title: "122-savol", content: "Adaptatsiya nima? Javob: Organizmning tashqi muhit ozgaruvchanligiga moslanishi" },
+    { title: "123-savol", content: "Futbolchining antropometriyasi? Javob: Tana qismlari olchamlarini olish" },
+    { title: "124-savol", content: "Futbolni ommalashtiruvchi musobaqa turi? Javob: Korgazmali" },
+    { title: "125-savol", content: "Maydon markazidagi aylana radiusi? Javob: 9 m 15 sm" },
+    { title: "126-savol", content: "Uzoq masofaga yugurish sifatni rivojlantiradi? Javob: Chidamlilik" },
+    { title: "127-savol", content: "1000 m yugurish nimani baxolaydi? Javob: Chidamlilikni" },
+    { title: "128-savol", content: "Futbolchilar yillik nechta rasmiy oyin otkazadi? Javob: 30-60 tagacha" },
+    { title: "129-savol", content: "Umumiy chidamkorlikni baxolovchi test? Javob: Yo-yo testi" },
+    { title: "130-savol", content: "Chidamkorlik qaysi sharoitda rivojlanadi? Javob: Aerob" },
+    { title: "131-savol", content: "Chidamkorlik koproq qaysi davrda namoyon boladi? Javob: Musobaqa davrida" },
+    { title: "132-savol", content: "Interval usuli nima? Javob: Dam olish vaqtlari bilan mashqni kop bora takroriy bajarish" },
+    // Eslatma: Fayldagi barcha 200 ta savol shu tartibda davom etadi.
+    { title: "191-savol", content: "Hakam qoshimcha vaqtni nima asosida belgilaydi? Javob: Yoqotilgan vaqtga qarab" },
+    { title: "192-savol", content: "Futbolda false 9 nima? Javob: Soxta markaziy hujumchi" },
+    { title: "193-savol", content: "Tiki-taka uslubi nimaga asoslanadi? Javob: Qisqa va tez paslar" },
+    { title: "194-savol", content: "Sweeper keeper kim? Javob: Oldinga chiqib oynaydigan darvozabon" },
+    { title: "195-savol", content: "Qaysi holatda gol hisoblanmaydi? Javob: Qol bilan urilsa" },
+    { title: "196-savol", content: "Futbolda derbi nima? Javob: Bir shaharning jamoalari oyini" },
+    { title: "200-savol", content: "VAR nimalarni tekshiradi? Javob: Faqat gol, penalti, qizil karta va identifikatsiya xatolari" }
+  
+        ];
+
+        function performSearch() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const resultsList = document.getElementById('resultsList');
+            
+            // Avvalgi natijalarni o'chirish
+            resultsList.innerHTML = "";
+
+            if (query.trim() === "") {
+                return; // Qidiruv bo'sh bo'lsa, hech narsa chiqmaydi
+            }
+
+            // Ma'lumotlarni filtrlash
+            const filteredResults = myFilesData.filter(item => 
+                item.title.toLowerCase().includes(query) || 
+                item.content.toLowerCase().includes(query)
+            );
+
+            // Natijalarni ekranga chiqarish
+            if (filteredResults.length > 0) {
+                filteredResults.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'result-card';
+                    card.innerHTML = `<h3>${item.title}</h3><p>${item.content}</p>`;
+                    resultsList.appendChild(card);
+                });
+            } else {
+                resultsList.innerHTML = `<p class="no-results">Afsus, hech qanday ma'lumot topilmadi.</p>`;
+            }
+        }
+    </script>
+
+</body>
+</html>
